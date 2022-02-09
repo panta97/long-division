@@ -57,7 +57,13 @@ export class RealNumber {
   }
 
   div(numb: RealNumber, inPlace = false) {
-    const newNumb = new RealNumber(numb.denominator, numb.numerator);
+    let newNumb: RealNumber;
+    if (numb.numerator < 0) {
+      // keep the negative sign on the numerator
+      newNumb = new RealNumber(numb.denominator * -1, numb.numerator * -1);
+    } else {
+      newNumb = new RealNumber(numb.denominator, numb.numerator);
+    }
     this.mul(newNumb, inPlace);
   }
 }
