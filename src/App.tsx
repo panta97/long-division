@@ -31,14 +31,14 @@ function App() {
               value={dividend}
               onChange={(e) => setDividend(e.target.value)}
               type="text"
-              className="border border-black border-dashed px-1 focus:border-transparent focus:outline-offset-[-1px] focus:outline-dashed focus:outline-blue-600"
+              className="border dark:border-white border-black border-dashed px-1 focus:border-transparent focus:outline-offset-[-1px] focus:outline-dashed focus:outline-blue-600 dark:bg-inherit"
             />
-            <span className="border-t border-black" />
+            <span className="border-t border-black dark:border-white" />
             <input
               value={divisor}
               onChange={(e) => setDivisor(e.target.value)}
               type="text"
-              className="border border-black border-dashed px-1 focus:border-transparent focus:outline-offset-[-1px] focus:outline-dashed focus:outline-blue-600"
+              className="border dark:border-white border-black border-dashed px-1 focus:border-transparent focus:outline-offset-[-1px] focus:outline-dashed focus:outline-blue-600 dark:bg-inherit"
             />
             <button className="border">Divide</button>
           </form>
