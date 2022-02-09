@@ -1,16 +1,22 @@
 import { useState } from "react";
 import { KatexRender } from "./KatexRender";
-import { getKatexLongDivision, longDivision, Polynomial } from "./logic";
+import { longDivision } from "./logic/division";
+import { getKatexLongDivision } from "./logic/format";
+import { Polynomial } from "./logic/polynomial";
 
 function App() {
-  const [dividend, setDividend] = useState("8x^4+0x^3+6x^2-3x+1");
-  const [divisor, setDivisor] = useState("2x^2-x+2");
+  const [dividend, setDividend] = useState("x^6+x^5+8x");
+  const [divisor, setDivisor] = useState("-x-2");
   const [expression, setExpression] = useState("");
 
   const handleDivision = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const polDividend = Polynomial.buildFromString(dividend);
-    const polDivisor = Polynomial.buildFromString(divisor);
+    const polDividend = Polynomial.buildFromString(dividend, {
+      addMissingTerms: true,
+    });
+    const polDivisor = Polynomial.buildFromString(divisor, {
+      addMissingTerms: true,
+    });
 
     const result = longDivision(polDividend, polDivisor);
     const resultExp = getKatexLongDivision(result);
