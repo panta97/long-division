@@ -113,14 +113,28 @@ export class Monomial {
   }
 }
 
+interface PolynomialOptions {
+  inPlace?: boolean;
+  addMissingTerms?: boolean;
+}
+
 export class Polynomial {
+  static defaultOptions: Required<PolynomialOptions> = {
+    inPlace: false,
+    addMissingTerms: true,
+  };
   terms: Monomial[];
 
   constructor(terms: Monomial[]) {
     this.terms = terms;
   }
 
-  static buildFromString(expression: string) {
+  getOptions(customOptions?: PolynomialOptions) {
+    return { ...Polynomial.defaultOptions, ...customOptions };
+  }
+
+  static buildFromString(expression: string, options?: PolynomialOptions) {
+    const defaultOptions = { ...Polynomial.defaultOptions, ...options };
     const terms: string[] = [];
     let term = expression[0];
     for (let i = 1; i < expression.length; i++) {
@@ -152,10 +166,25 @@ export class Polynomial {
         else exponent = 0;
       }
       const monomial = new Monomial(new RealNumber(coefficient, 1), exponent);
-      polynomial.add(monomial, true);
+      polynomial.add(monomial, { ...defaultOptions, inPlace: true });
     }
 
     return polynomial;
+  }
+
+  private addMissingTerms() {
+    // add missing in-between terms
+    for (let i = 1; i < this.terms.length; i++) {
+      const term = this.terms[i];
+      const prevTerm = this.terms[i - 1];
+      if (prevTerm.degree - term.degree > 1) {
+        for (let d = prevTerm.degree - 1; d > term.degree; d--) {
+          const number = new RealNumber(0, 1);
+          const monomial = new Monomial(number, d);
+          this.appendTerm(monomial);
+        }
+      }
+    }
   }
 
   private appendTerm(newTerm: Monomial) {
@@ -194,37 +223,42 @@ export class Polynomial {
     }
   }
 
-  add(term: Monomial, inPlace = false) {
-    const currPolynomial = inPlace ? this : cloneDeep(this);
+  add(term: Monomial, options?: PolynomialOptions) {
+    const defaultOptions = this.getOptions(options);
+    const currPolynomial = defaultOptions.inPlace ? this : cloneDeep(this);
     const polTerm = this.terms.find((t) => t.degree === term.degree);
     if (polTerm) {
       polTerm.coefficient.add(term.coefficient, true);
     } else {
       currPolynomial.appendTerm(term);
+      if (defaultOptions.addMissingTerms) currPolynomial.addMissingTerms();
     }
-    if (!inPlace) return currPolynomial;
+    if (!defaultOptions.inPlace) return currPolynomial;
   }
 
-  mul(term: Monomial, inPlace = false) {
-    const currPolynomial = inPlace ? this : cloneDeep(this);
+  mul(term: Monomial, options?: PolynomialOptions) {
+    const defaultOptions = this.getOptions(options);
+    const currPolynomial = defaultOptions.inPlace ? this : cloneDeep(this);
     for (let i = 0; i < currPolynomial.terms.length; i++) {
       const currTerm = currPolynomial.terms[i];
       currTerm.coefficient.mul(term.coefficient, true);
       currTerm.degree += term.degree;
     }
-    if (!inPlace) return currPolynomial;
+    if (!defaultOptions.inPlace) return currPolynomial;
   }
 
-  addPol(pol: Polynomial, inPlace = false) {
-    const currPolynomial = inPlace ? this : cloneDeep(this);
-    pol.terms.forEach((term) => currPolynomial.add(term, true));
-    if (!inPlace) return currPolynomial;
+  addPol(pol: Polynomial, options?: PolynomialOptions) {
+    const defaultOptions = this.getOptions(options);
+    const currPolynomial = defaultOptions.inPlace ? this : cloneDeep(this);
+    pol.terms.forEach((term) => currPolynomial.add(term, { inPlace: true }));
+    if (!defaultOptions.inPlace) return currPolynomial;
   }
 
-  mulPol(pol: Polynomial, inPlace = false) {
-    const currPolynomial = inPlace ? this : cloneDeep(this);
-    pol.terms.forEach((term) => currPolynomial.mul(term, true));
-    if (!inPlace) return currPolynomial;
+  mulPol(pol: Polynomial, options?: PolynomialOptions) {
+    const defaultOptions = this.getOptions(options);
+    const currPolynomial = defaultOptions.inPlace ? this : cloneDeep(this);
+    pol.terms.forEach((term) => currPolynomial.mul(term, { inPlace: true }));
+    if (!defaultOptions.inPlace) return currPolynomial;
   }
 
   private getNonZeroTerms() {
@@ -306,11 +340,10 @@ export const longDivision = (dividend: Polynomial, divisor: Polynomial) => {
   // passed by reference
   // leading term = LT
   // trailing term = TT
-  const steps: Polynomial[] = [];
   let dividendLT = dividend.getLeadingTerm();
   const divisorLT = divisor.getLeadingTerm();
   const quotient = new Polynomial([]);
-  quotient.add(dividendLT.div(divisorLT)!, true);
+  quotient.add(dividendLT.div(divisorLT)!, { inPlace: true });
   let quotientTT = quotient.getTrailingTerm();
   let divisorxQuotientTT = divisor.mul(quotientTT)!;
   let remainder = dividend.addPol(divisorxQuotientTT.mul(inverse)!)!;
@@ -321,7 +354,7 @@ export const longDivision = (dividend: Polynomial, divisor: Polynomial) => {
 
   while (remainder.getDegree() >= divisor.getDegree()) {
     dividendLT = dividend.getLeadingTerm();
-    quotient.add(dividendLT.div(divisorLT)!, true);
+    quotient.add(dividendLT.div(divisorLT)!, { inPlace: true });
     quotientTT = quotient.getTrailingTerm();
     divisorxQuotientTT = divisor.mul(quotientTT)!;
     remainder = dividend.addPol(divisorxQuotientTT.mul(inverse)!)!;
