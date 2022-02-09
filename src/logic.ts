@@ -232,9 +232,7 @@ export class Polynomial {
   }
 
   getTerm(degree: number) {
-    const term = this.terms.find((t) => t.degree === degree);
-    if (!term) return this.terms[this.terms.length - 1];
-    return term;
+    return this.terms.find((t) => t.degree === degree);
   }
 
   getLeadingTerm() {
@@ -359,20 +357,14 @@ export const getKatexLongDivision = (longDivision: LongDivisionProcess) => {
   exp += "\\end{array}";
 
   function getMargin(upToDegree: number) {
-    // leftMargin += `${longDivision.dividend
-    //   .getTerm(marginDegree)
-    //   .getKatex(true)}`;
-    // leftMargin += `\\phantom\{${longDivision.dividend
-    //   .getTerm(marginDegree)
-    //   .getKatex()}\}`;
-
     let margin = "";
     for (let deg = longDivision.dividend.getDegree(); deg > upToDegree; deg--) {
-      margin += `${longDivision.dividend.getTerm(deg).getKatex(true)}`;
+      const term = longDivision.dividend.getTerm(deg);
+      if (!term) continue;
+      margin += `${term.getKatex(true)}`;
     }
     if (margin !== "") return `\\phantom\{${margin}\}`;
     return margin;
   }
-
   return exp;
 };
