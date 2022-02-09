@@ -240,7 +240,8 @@ export class Polynomial {
   }
 
   getTrailingTerm() {
-    return this.getNonZeroTerms()[this.terms.length - 1];
+    const nonZeroTerms = this.getNonZeroTerms();
+    return nonZeroTerms[nonZeroTerms.length - 1];
   }
 
   getDegree() {
