@@ -240,6 +240,7 @@ export class Polynomial {
   }
 
   getDegree() {
+    if (this.getNonZeroTerms().length === 0) return 0;
     return this.getNonZeroTerms()[0].degree;
   }
 
